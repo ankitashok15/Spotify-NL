@@ -44,3 +44,13 @@ npm run dev
 ```
 
 Open http://localhost:5173
+
+## Production deployment
+
+| App | Platform |
+|-----|----------|
+| Python backend UI | [Streamlit Cloud](https://share.streamlit.io) — `streamlit_app.py` |
+| REST API (for React) | [Render](https://render.com) — `render.yaml` |
+| React frontend | [Vercel](https://vercel.com) — `frontend/` |
+
+See **[DEPLOY.md](./DEPLOY.md)** for step-by-step instructions.

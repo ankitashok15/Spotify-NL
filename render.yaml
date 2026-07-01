@@ -1,0 +1,29 @@
+# Render.com — REST API for the Vercel React frontend
+# Streamlit Cloud hosts the Python Streamlit backend UI (streamlit_app.py)
+# https://dashboard.render.com
+
+services:
+  - type: web
+    name: spotify-nl-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python scripts/serve_api.py
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+      - key: DATABASE_URL
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+      - key: GEMINI_MODEL_RAG
+        value: gemini-2.5-flash
+      - key: GEMINI_EMBEDDING_MODEL
+        value: text-embedding-004
+      - key: QDRANT_URL
+        sync: false
+      - key: CORS_ORIGINS
+        value: https://spotify-nl.vercel.app,https://spotify-nl-frontend.vercel.app

@@ -25,3 +25,7 @@ hdbscan>=0.8.38
 # Phase 6 — Agent & orchestration
 celery[redis]>=5.4.0
 redis>=5.0.0
+
+# Streamlit Cloud backend UI
+streamlit>=1.40.0
+pandas>=2.2.0

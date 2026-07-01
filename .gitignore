@@ -13,6 +13,9 @@ data/raw/**/*.json
 .idea/
 .vscode/
 
+# Streamlit local secrets (optional — copy from example)
+.streamlit/secrets.toml
+
 # Node / frontend
 node_modules/
 frontend/dist/

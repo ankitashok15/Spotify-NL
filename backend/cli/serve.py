@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
@@ -16,10 +17,11 @@ from backend.app.config import settings
 
 
 def main() -> None:
+    port = int(os.environ.get("PORT", settings.api_port))
     uvicorn.run(
         "backend.app.main:app",
         host=settings.api_host,
-        port=settings.api_port,
+        port=port,
         reload=False,
     )
 

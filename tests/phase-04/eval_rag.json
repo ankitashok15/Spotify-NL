@@ -1,0 +1,25 @@
+{
+  "description": "Phase 4 RAG evaluation questions (expand toward 50 for full eval)",
+  "questions": [
+    {"id": "r01", "question": "Why do users dislike Discover Weekly?", "filters": null},
+    {"id": "r02", "question": "Show reviews mentioning recommendation fatigue", "filters": null},
+    {"id": "r03", "question": "What do Premium users complain about?", "filters": {"subscription_type": "premium"}},
+    {"id": "r04", "question": "What are top discovery issues among 1-star reviews?", "filters": {"rating_max": 1, "is_discovery_related": true}},
+    {"id": "r05", "question": "Which feature requests appear most often?", "filters": null},
+    {"id": "r06", "question": "How have discovery complaints changed this year?", "filters": null},
+    {"id": "r07", "question": "What do phone users say about playlists?", "filters": {"device_type": "phone"}},
+    {"id": "r08", "question": "Why do free users struggle with music discovery?", "filters": {"subscription_type": "free"}},
+    {"id": "r09", "question": "Why do recommendation algorithms become repetitive?", "filters": null},
+    {"id": "r10", "question": "What prevents users from finding fresh artists?", "filters": null},
+    {"id": "r11", "question": "What causes recommendation fatigue?", "filters": null},
+    {"id": "r12", "question": "Which recommendation surfaces receive the most criticism?", "filters": null},
+    {"id": "r13", "question": "Which user groups face different discovery challenges?", "filters": null},
+    {"id": "r14", "question": "What emotions do users express about recommendations?", "filters": null},
+    {"id": "r15", "question": "Which discovery journeys produce frustration?", "filters": null},
+    {"id": "r16", "question": "What unmet user needs consistently emerge?", "filters": null},
+    {"id": "r17", "question": "Why are users unhappy with Daily Mix?", "filters": null},
+    {"id": "r18", "question": "Show complaints about unwanted songs in playlists", "filters": null},
+    {"id": "r19", "question": "What do family plan users say about recommendations?", "filters": {"subscription_type": "family"}},
+    {"id": "r20", "question": "What do low-rated reviews say about skip limits?", "filters": {"rating_max": 2}}
+  ]
+}

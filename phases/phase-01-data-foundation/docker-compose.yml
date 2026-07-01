@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: spotify_nl_postgres
+    environment:
+      POSTGRES_USER: spotify
+      POSTGRES_PASSWORD: spotify
+      POSTGRES_DB: spotify_nl
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U spotify -d spotify_nl"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

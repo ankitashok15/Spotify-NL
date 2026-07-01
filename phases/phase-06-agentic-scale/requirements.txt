@@ -1,0 +1,4 @@
+# Phase 6 — inherits repo root deps
+-r ../../requirements.txt
+celery[redis]>=5.4.0
+redis>=5.0.0

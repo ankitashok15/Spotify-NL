@@ -1,0 +1,5 @@
+# Phase 5 — inherits repo root deps; adds clustering stack
+-r ../../requirements.txt
+scikit-learn>=1.5.0
+numpy>=1.26.0
+hdbscan>=0.8.38

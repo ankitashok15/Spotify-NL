@@ -1,0 +1,110 @@
+{
+  "description": "Phase 3 semantic search evaluation queries",
+  "queries": [
+  {
+    "id": "q01",
+    "query": "users complaining about repetitive Discover Weekly",
+    "notes": "Paraphrase / discovery surface"
+  },
+  {
+    "id": "q02",
+    "query": "same songs every week recommendations never change",
+    "notes": "Paraphrase fatigue"
+  },
+  {
+    "id": "q03",
+    "query": "unwanted songs added to my playlists",
+    "notes": "Playlist contamination"
+  },
+  {
+    "id": "q04",
+    "query": "algorithm does not understand my music taste",
+    "notes": "Personalization failure"
+  },
+  {
+    "id": "q05",
+    "query": "free tier skip limit frustration",
+    "notes": "Free user limits"
+  },
+  {
+    "id": "q06",
+    "query": "release radar missing new artists",
+    "notes": "Release Radar discovery"
+  },
+  {
+    "id": "q07",
+    "query": "daily mix too repetitive",
+    "notes": "Daily Mix repetition"
+  },
+  {
+    "id": "q08",
+    "query": "shuffle plays same artists",
+    "notes": "Shuffle diversity"
+  },
+  {
+    "id": "q09",
+    "query": "recommendation fatigue boring suggestions",
+    "notes": "Fatigue theme"
+  },
+  {
+    "id": "q10",
+    "query": "cannot find new music I like",
+    "notes": "Discovery struggle"
+  },
+  {
+    "id": "q11",
+    "query": "autoplay suggests irrelevant tracks",
+    "notes": "Autoplay quality"
+  },
+  {
+    "id": "q12",
+    "query": "made for you playlists are disappointing",
+    "notes": "Made For You"
+  },
+  {
+    "id": "q13",
+    "query": "premium user unhappy with recommendations",
+    "notes": "Premium discovery",
+    "filters": { "subscription_type": "premium" }
+  },
+  {
+    "id": "q14",
+    "query": "one star reviews about bad suggestions",
+    "notes": "Low rating filter",
+    "filters": { "rating_max": 1 }
+  },
+  {
+    "id": "q15",
+    "query": "phone app discovery problems",
+    "notes": "Device segment",
+    "filters": { "device_type": "phone" }
+  },
+  {
+    "id": "q16",
+    "query": "student plan recommendation issues",
+    "notes": "Subscription segment",
+    "filters": { "subscription_type": "student" }
+  },
+  {
+    "id": "q17",
+    "query": "discover weekly keeps repeating artists",
+    "notes": "DW repetition variant"
+  },
+  {
+    "id": "q18",
+    "query": "home feed shows music I already know",
+    "notes": "Home feed novelty"
+  },
+  {
+    "id": "q19",
+    "query": "search finds wrong songs",
+    "notes": "Search vs recommendation boundary"
+  },
+  {
+    "id": "q20",
+    "query": "family plan kids getting inappropriate recommendations",
+    "notes": "Family plan context",
+    "filters": { "subscription_type": "family" }
+  }
+  ]
+}

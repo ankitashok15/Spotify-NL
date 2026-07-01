@@ -1,20 +1,22 @@
-import sys
+import importlib.util
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parent
-if str(_ROOT) not in sys.path:
-    sys.path.insert(0, str(_ROOT))
+_spec = importlib.util.spec_from_file_location(
+    "bootstrap_loader", _ROOT / "bootstrap_loader.py"
+)
+_loader = importlib.util.module_from_spec(_spec)
+assert _spec.loader is not None
+_spec.loader.exec_module(_loader)
+
+_sb = _loader.load_bootstrap(__file__)
+_sb.init_runtime()
 
 import streamlit as st
 
-from streamlit_bootstrap import (
-    deploy_config_issues,
-    gemini_key_configured,
-    init_runtime,
-    render_deploy_config_help,
-)
-
-init_runtime()
+deploy_config_issues = _sb.deploy_config_issues
+gemini_key_configured = _sb.gemini_key_configured
+render_deploy_config_help = _sb.render_deploy_config_help
 
 st.set_page_config(
     page_title="Spotify NL",

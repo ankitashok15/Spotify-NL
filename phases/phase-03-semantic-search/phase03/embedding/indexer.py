@@ -7,7 +7,7 @@ from qdrant_client import QdrantClient
 from qdrant_client.http import models as qmodels
 
 from phase03.embedding.embedder import EmbeddedReview
-from phase03.embedding.provider import EMBEDDING_DIMENSION
+from phase03.embedding.provider import DEFAULT_EMBEDDING_MODEL, EMBEDDING_DIMENSION
 from phase03.shared.config import settings
 
 logger = logging.getLogger(__name__)
@@ -22,11 +22,32 @@ class QdrantIndexer:
     ) -> None:
         self.collection_name = collection_name or settings.qdrant_collection
         key = api_key if api_key is not None else settings.qdrant_api_key or None
-        self.client = QdrantClient(url=url or settings.qdrant_url, api_key=key)
+        self.client = QdrantClient(
+            url=url or settings.qdrant_url,
+            api_key=key,
+            check_compatibility=False,
+        )
 
     def ensure_collection(self) -> None:
         if self.client.collection_exists(self.collection_name):
-            return
+            info = self.client.get_collection(self.collection_name)
+            current_size = info.config.params.vectors.size  # type: ignore[union-attr]
+            points = int(info.points_count or 0)
+            if current_size != EMBEDDING_DIMENSION:
+                if points > 0:
+                    raise ValueError(
+                        f"Qdrant collection {self.collection_name} has dimension {current_size} "
+                        f"but model expects {EMBEDDING_DIMENSION}. Reindex required."
+                    )
+                logger.warning(
+                    "Recreating empty collection %s (%s -> %s dims)",
+                    self.collection_name,
+                    current_size,
+                    EMBEDDING_DIMENSION,
+                )
+                self.client.delete_collection(self.collection_name)
+            else:
+                return
 
         self.client.create_collection(
             collection_name=self.collection_name,
@@ -82,14 +103,15 @@ class QdrantIndexer:
         *,
         top_k: int = 20,
         qdrant_filter: qmodels.Filter | None = None,
-    ) -> list[qmodels.ScoredPoint]:
-        return self.client.search(
+    ) -> list:
+        response = self.client.query_points(
             collection_name=self.collection_name,
-            query_vector=query_vector,
+            query=query_vector,
             limit=top_k,
             query_filter=qdrant_filter,
             with_payload=True,
         )
+        return list(response.points or [])
 
     def get_by_id(self, review_id: uuid.UUID) -> qmodels.Record | None:
         records = self.client.retrieve(

@@ -47,7 +47,7 @@ try:
         from qdrant_client import QdrantClient
         from phase03.shared.config import settings as p3
 
-        client = QdrantClient(url=p3.qdrant_url)
+        client = QdrantClient(url=p3.qdrant_url, check_compatibility=False)
         if client.collection_exists(p3.qdrant_collection):
             vectors = int(client.get_collection(p3.qdrant_collection).points_count or 0)
     except Exception:

@@ -14,7 +14,7 @@ class Settings(BaseSettings):
 
     database_url: str = "postgresql://spotify:spotify@localhost:5433/spotify_nl"
     gemini_api_key: str = ""
-    gemini_embedding_model: str = "text-embedding-004"
+    gemini_embedding_model: str = "gemini-embedding-001"
     qdrant_url: str = "http://localhost:6333"
     qdrant_api_key: str = ""
     qdrant_collection: str = "spotify_reviews"

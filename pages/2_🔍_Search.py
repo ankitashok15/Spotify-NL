@@ -15,7 +15,10 @@ if st.button("Search", type="primary"):
         from phase03.search.semantic_search import SemanticSearchService
 
         with st.spinner("Searching…"):
-            res = SemanticSearchService().search(query, top_k=top_k)
+            service = SemanticSearchService()
+            res = service.search(query, top_k=top_k)
+        if not res.results:
+            st.warning("No vectors indexed yet. Run: `python scripts/index_vectors.py --limit 50`")
         st.caption(f"{len(res.results)} results · {res.took_ms:.0f} ms")
         for hit in res.results:
             with st.expander(f"★ {hit.rating} · score {hit.score:.3f} · {hit.primary_issue or '—'}"):

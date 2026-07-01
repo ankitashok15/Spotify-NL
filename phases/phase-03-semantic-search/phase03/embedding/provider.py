@@ -10,8 +10,9 @@ from phase03.shared.config import settings
 
 logger = logging.getLogger(__name__)
 
-# text-embedding-004 output dimension
-EMBEDDING_DIMENSION = 768
+# text-embedding-004 = 768d (legacy); gemini-embedding-001 = 3072d (current Google AI Studio)
+EMBEDDING_DIMENSION = 3072
+DEFAULT_EMBEDDING_MODEL = "gemini-embedding-001"
 
 TaskType = Literal["retrieval_document", "retrieval_query", "semantic_similarity"]
 
@@ -26,7 +27,14 @@ class GeminiEmbeddingProvider:
         if not key:
             raise ValueError("GEMINI_API_KEY is not set in .env")
         self.model_name = model_name or settings.gemini_embedding_model
-        self._model = f"models/{self.model_name}"
+        if self.model_name == "text-embedding-004":
+            logger.warning(
+                "text-embedding-004 is unavailable on many API keys; using gemini-embedding-001"
+            )
+            self.model_name = DEFAULT_EMBEDDING_MODEL
+        self._model = (
+            self.model_name if self.model_name.startswith("models/") else f"models/{self.model_name}"
+        )
         genai.configure(api_key=key)
 
     def embed_one(self, text: str, *, task_type: TaskType = "retrieval_document") -> list[float]:

@@ -1,13 +1,36 @@
 const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
+function parseApiError(status: number, body: string): string {
+  try {
+    const parsed = JSON.parse(body) as { detail?: string | { msg?: string }[] };
+    if (typeof parsed.detail === "string") return parsed.detail;
+    if (Array.isArray(parsed.detail)) {
+      return parsed.detail.map((d) => d.msg ?? String(d)).join("; ");
+    }
+  } catch {
+    /* not JSON */
+  }
+  if (body.includes("<!doctype") || body.includes("<html")) {
+    return `API unreachable (${status}). Start the backend: python scripts/serve_api.py — or set VITE_API_URL for production.`;
+  }
+  return body || `Request failed (${status})`;
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    headers: { "Content-Type": "application/json", ...(options?.headers ?? {}) },
-    ...options,
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      headers: { "Content-Type": "application/json", ...(options?.headers ?? {}) },
+      ...options,
+    });
+  } catch {
+    throw new Error(
+      "Cannot reach API. Run python scripts/serve_api.py (port 8080) or configure VITE_API_URL."
+    );
+  }
   if (!res.ok) {
     const detail = await res.text();
-    throw new Error(detail || res.statusText);
+    throw new Error(parseApiError(res.status, detail));
   }
   return res.json() as Promise<T>;
 }

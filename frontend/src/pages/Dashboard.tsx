@@ -29,8 +29,13 @@ export function DashboardPage() {
             <Stat label="Insights" value={stats.insights_total} />
             <Stat label="Last scrape" value={stats.scrape_status ?? "—"} />
           </div>
-          <div className="panel">
+            <div className="panel">
             <h2>Top discovery issues</h2>
+            {stats.vectors_indexed === 0 && (
+              <p className="meta">
+                No vectors in Qdrant — run <code>python scripts/index_vectors.py --limit 50</code> for semantic search.
+              </p>
+            )}
             {stats.top_issues.length === 0 && (
               <p className="meta">Run Phase 2 extraction to populate structured issues.</p>
             )}

@@ -28,7 +28,7 @@ def _qdrant_point_count() -> int:
         from qdrant_client import QdrantClient
         from phase03.shared.config import settings as phase3_settings
 
-        client = QdrantClient(url=phase3_settings.qdrant_url)
+        client = QdrantClient(url=phase3_settings.qdrant_url, check_compatibility=False)
         if not client.collection_exists(phase3_settings.qdrant_collection):
             return 0
         info = client.get_collection(phase3_settings.qdrant_collection)
@@ -56,7 +56,10 @@ def dashboard_stats(db: Session = Depends(get_db)) -> DashboardStats:
     top_issues: list[dict] = []
     try:
         top_issues = [
-            dict(row)
+            {
+                "primary_issue": row["primary_issue"],
+                "count": int(row["count"]),
+            }
             for row in db.execute(
                 text(
                     """

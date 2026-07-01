@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
-"""Delegate to unified backend server."""
+"""Run the unified Spotify NL API server."""
 
-import runpy
+from __future__ import annotations
+
 import sys
 from pathlib import Path
 
-target = Path(__file__).resolve().parents[1] / "cli" / "serve.py"
-sys.path.insert(0, str(target.parents[1]))
-runpy.run_path(str(target), run_name="__main__")
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "backend"))
+
+from backend.cli.serve import main
+
+if __name__ == "__main__":
+    main()

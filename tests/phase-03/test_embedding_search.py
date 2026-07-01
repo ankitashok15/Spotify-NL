@@ -72,4 +72,4 @@ def test_embedding_model_version_stable():
     v1 = embedding_model_version()
     v2 = embedding_model_version()
     assert v1 == v2
-    assert "text-embedding-004" in v1 or "@" in v1
+    assert "gemini-embedding" in v1 or "embedding" in v1 or "@" in v1

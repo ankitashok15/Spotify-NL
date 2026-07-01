@@ -26,6 +26,15 @@ class SemanticSearchService:
         top_k: int = 20,
     ) -> SearchResponse:
         started = time.perf_counter()
+        if self.indexer.count_indexed() == 0:
+            took_ms = (time.perf_counter() - started) * 1000
+            return SearchResponse(
+                query=query,
+                top_k=top_k,
+                took_ms=round(took_ms, 2),
+                results=[],
+            )
+
         vector = self.embedder.embed_query(query)
         qdrant_filter = build_qdrant_filter(filters)
         hits = self.indexer.search(vector, top_k=top_k, qdrant_filter=qdrant_filter)

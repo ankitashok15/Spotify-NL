@@ -25,7 +25,7 @@ DATABASE_URL = "postgresql://..."
 GEMINI_API_KEY = "..."
 QDRANT_URL = "https://..."
 GEMINI_MODEL = "gemini-2.5-flash"
-GEMINI_EMBEDDING_MODEL = "text-embedding-004"
+GEMINI_EMBEDDING_MODEL = "gemini-embedding-001"
 ```
 
 6. Deploy. Your app URL will look like: `https://spotify-nl-xxxxx.streamlit.app`
@@ -66,6 +66,8 @@ Test: `curl https://spotify-nl-api.onrender.com/health`
 5. Deploy. Your app URL: `https://spotify-nl.vercel.app` (or custom name)
 
 ### Update Render CORS
+
+Set `GEMINI_EMBEDDING_MODEL=gemini-embedding-001` on Render and Streamlit (not `text-embedding-004`).
 
 In Render dashboard, set `CORS_ORIGINS` to include your Vercel URL:
 

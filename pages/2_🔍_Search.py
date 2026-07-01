@@ -1,6 +1,13 @@
+import sys
+from pathlib import Path
+
+_ROOT = Path(__file__).resolve().parents[1]
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
 import streamlit as st
 
-from streamlit_lib.bootstrap import init_runtime
+from streamlit_bootstrap import init_runtime
 
 init_runtime()
 

@@ -1,0 +1,7 @@
+-r requirements.txt
+
+# Render / local API — optional heavy deps (not needed on Streamlit Cloud)
+google-play-scraper>=1.2.7
+hdbscan>=0.8.38
+celery[redis]>=5.4.0
+redis>=5.0.0

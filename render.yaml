@@ -7,7 +7,7 @@ services:
     name: spotify-nl-api
     runtime: python
     plan: free
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install -r requirements-api.txt
     startCommand: python scripts/serve_api.py
     healthCheckPath: /health
     envVars:

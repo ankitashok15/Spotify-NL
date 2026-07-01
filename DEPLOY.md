@@ -117,5 +117,6 @@ cd frontend && npm run dev
 |-------|-----|
 | Vercel shows API errors | Set `VITE_API_URL` to Render URL; redeploy Vercel |
 | CORS blocked | Add Vercel URL to `CORS_ORIGINS` on Render |
+| Streamlit import error on `streamlit_lib` | Pull latest `master`, reboot app; main file = `streamlit_app.py` at repo root |
 | Streamlit DB error | Check `DATABASE_URL` in Streamlit secrets |
 | Render cold start | Free tier sleeps after 15 min — first request may take ~30s |

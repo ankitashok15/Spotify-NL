@@ -1,4 +1,3 @@
-google-play-scraper>=1.2.7
 sqlalchemy>=2.0.0
 psycopg2-binary>=2.9.9
 pydantic>=2.0.0
@@ -8,7 +7,6 @@ uvicorn[standard]>=0.27.0
 python-dotenv>=1.0.0
 python-multipart>=0.0.9
 httpx>=0.27.0
-pytest>=8.0.0
 
 # Phase 2+ — Google Gemini (not OpenAI)
 google-generativeai>=0.8.0
@@ -17,14 +15,9 @@ langdetect>=1.0.9
 # Phase 3 — Vector search (Qdrant)
 qdrant-client>=1.12.0
 
-# Phase 5 — Clustering
+# Phase 5 — Clustering (read-only UI; full clustering runs on Render/local)
 scikit-learn>=1.5.0
 numpy>=1.26.0
-hdbscan>=0.8.38
-
-# Phase 6 — Agent & orchestration
-celery[redis]>=5.4.0
-redis>=5.0.0
 
 # Streamlit Cloud backend UI
 streamlit>=1.40.0

@@ -84,3 +84,50 @@ def init_runtime() -> None:
 
 def gemini_key_configured() -> bool:
     return bool(os.environ.get("GEMINI_API_KEY", "").strip())
+
+
+def _is_local_url(value: str) -> bool:
+    v = (value or "").strip().lower()
+    if not v:
+        return True
+    return any(h in v for h in ("localhost", "127.0.0.1", "::1"))
+
+
+def deploy_config_issues() -> list[str]:
+    """Return human-readable config problems for Streamlit Cloud."""
+    issues: list[str] = []
+    if _is_local_url(os.environ.get("DATABASE_URL", "")):
+        issues.append(
+            "DATABASE_URL is missing or points to localhost. "
+            "Set a **cloud PostgreSQL** URL in Streamlit Cloud → Settings → Secrets."
+        )
+    if _is_local_url(os.environ.get("QDRANT_URL", "")):
+        issues.append(
+            "QDRANT_URL is missing or points to localhost. "
+            "Set your **Qdrant Cloud** URL (and QDRANT_API_KEY) in Streamlit secrets."
+        )
+    if not gemini_key_configured():
+        issues.append(
+            "GEMINI_API_KEY is missing. Add it in Streamlit Cloud → Settings → Secrets."
+        )
+    return issues
+
+
+def render_deploy_config_help() -> None:
+    """Show setup instructions when cloud secrets are not configured."""
+    import streamlit as st
+
+    for msg in deploy_config_issues():
+        st.error(msg)
+    st.markdown(
+        """
+        **Why this happens:** Streamlit Cloud runs on remote servers. It cannot connect to
+        `localhost` on your PC. You need hosted PostgreSQL and Qdrant.
+
+        1. Create a free DB at [Neon](https://neon.tech) or [Supabase](https://supabase.com)
+        2. Use your [Qdrant Cloud](https://cloud.qdrant.io) cluster URL + API key
+        3. Paste all values in **Streamlit Cloud → Settings → Secrets** (see `.streamlit/secrets.toml.example`)
+        4. Click **Save** → **Reboot app**
+        5. From your PC, point `.env` at the same cloud URLs and run scrape / extract / index scripts to load data
+        """
+    )

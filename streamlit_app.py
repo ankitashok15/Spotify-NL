@@ -7,7 +7,12 @@ if str(_ROOT) not in sys.path:
 
 import streamlit as st
 
-from streamlit_bootstrap import gemini_key_configured, init_runtime
+from streamlit_bootstrap import (
+    deploy_config_issues,
+    gemini_key_configured,
+    init_runtime,
+    render_deploy_config_help,
+)
 
 init_runtime()
 
@@ -28,13 +33,12 @@ st.markdown(
     """
 )
 
-if gemini_key_configured():
-    st.success("GEMINI_API_KEY is configured.")
+if deploy_config_issues():
+    render_deploy_config_help()
+elif gemini_key_configured():
+    st.success("Cloud config looks good (GEMINI_API_KEY, DATABASE_URL, QDRANT_URL).")
 else:
-    st.error(
-        "GEMINI_API_KEY is missing. In Streamlit Cloud → App settings → Secrets, add:\n\n"
-        "`GEMINI_API_KEY = \"your-key-from-aistudio.google.com\"`"
-    )
+    st.error("GEMINI_API_KEY is missing in Streamlit secrets.")
 
 st.info(
     "The React UI on Vercel uses a separate REST API (Render). "

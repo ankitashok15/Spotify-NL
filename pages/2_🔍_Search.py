@@ -7,12 +7,16 @@ if str(_ROOT) not in sys.path:
 
 import streamlit as st
 
-from streamlit_bootstrap import init_runtime
+from streamlit_bootstrap import deploy_config_issues, init_runtime, render_deploy_config_help
 
 init_runtime()
 
 st.set_page_config(page_title="Search", page_icon="🔍", layout="wide")
 st.title("Semantic Search")
+
+if deploy_config_issues():
+    render_deploy_config_help()
+    st.stop()
 
 query = st.text_input("Query", value="free users hate playlist recommendations")
 top_k = st.slider("Top K", 3, 30, 10)

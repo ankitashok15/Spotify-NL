@@ -4,6 +4,8 @@ import logging
 import time
 from typing import Literal
 
+import os
+
 import google.generativeai as genai
 
 from phase03.shared.config import settings
@@ -23,9 +25,11 @@ class GeminiEmbeddingProvider:
         api_key: str | None = None,
         model_name: str | None = None,
     ) -> None:
-        key = api_key or settings.gemini_api_key
+        key = api_key or os.environ.get("GEMINI_API_KEY") or settings.gemini_api_key
         if not key:
-            raise ValueError("GEMINI_API_KEY is not set in .env")
+            raise ValueError(
+                "GEMINI_API_KEY is not set. Add it to .env locally or Streamlit Cloud secrets."
+            )
         self.model_name = model_name or settings.gemini_embedding_model
         if self.model_name == "text-embedding-004":
             logger.warning(

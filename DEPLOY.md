@@ -57,15 +57,13 @@ Test: `curl https://spotify-nl-api.onrender.com/health`
 1. Go to [vercel.com/new](https://vercel.com/new) → Import `ankitashok15/Spotify-NL`.
 2. **Root Directory:** `frontend`
 3. Framework: **Vite** (auto-detected via `vercel.json`)
-4. **Environment variables:**
+4. **Environment variables** (required — without this you get HTTP 405):
 
 | Name | Value |
 |------|-------|
-| `VITE_API_URL` | `https://spotify-nl-api.onrender.com` (your Render URL, no trailing slash) |
+| `VITE_API_URL` | `https://spotify-nl-api.onrender.com` (your **Render** API URL — **not** the Streamlit URL) |
 
 5. Deploy. Your app URL: `https://spotify-nl.vercel.app` (or custom name)
-
-### Update Render CORS
 
 Set `GEMINI_EMBEDDING_MODEL=gemini-embedding-001` on Render and Streamlit (not `text-embedding-004`).
 

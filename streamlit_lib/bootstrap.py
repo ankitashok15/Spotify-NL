@@ -1,4 +1,4 @@
-"""Bootstrap paths and secrets for Streamlit Cloud."""
+"""Bootstrap paths and secrets for Streamlit Cloud and local .env."""
 
 from __future__ import annotations
 
@@ -23,16 +23,60 @@ for folder in (
 
 sys.path.insert(0, str(ROOT / "backend"))
 
+_ALIASES = {
+    "GEMINI_API_KEY": ("GEMINI_API_KEY", "GOOGLE_API_KEY"),
+    "DATABASE_URL": ("DATABASE_URL", "POSTGRES_URL"),
+    "QDRANT_URL": ("QDRANT_URL",),
+}
+
+
+def _flatten_secrets(obj: object, prefix: str = "") -> dict[str, str]:
+    out: dict[str, str] = {}
+    if isinstance(obj, dict):
+        for key, value in obj.items():
+            upper = str(key).upper()
+            full = f"{prefix}{upper}" if prefix else upper
+            if isinstance(value, dict):
+                out.update(_flatten_secrets(value, f"{full}_"))
+                # common nested: gemini.api_key -> GEMINI_API_KEY
+                if full == "GEMINI" and "API_KEY" in value:
+                    out["GEMINI_API_KEY"] = str(value["API_KEY"])
+            else:
+                out[full] = str(value)
+    return out
+
 
 def apply_secrets() -> None:
-    """Map Streamlit Cloud secrets into os.environ for phase settings."""
+    """Load local .env then Streamlit Cloud secrets into os.environ."""
+    try:
+        from dotenv import load_dotenv
+
+        load_dotenv(ROOT / ".env", override=False)
+    except ImportError:
+        pass
+
     try:
         import streamlit as st
 
-        secrets = dict(st.secrets)
+        flat = _flatten_secrets(dict(st.secrets))
+        for key, value in flat.items():
+            if value:
+                os.environ[key] = value
+        for target, sources in _ALIASES.items():
+            if os.environ.get(target):
+                continue
+            for src in sources:
+                if os.environ.get(src):
+                    os.environ[target] = os.environ[src]
+                    break
     except Exception:
-        return
+        pass
 
-    for key, value in secrets.items():
-        if isinstance(value, str):
-            os.environ.setdefault(key, value)
+
+def init_runtime() -> None:
+    """Call once at the top of every Streamlit page before phase imports."""
+    apply_secrets()
+
+
+def gemini_key_configured() -> bool:
+    return bool(os.environ.get("GEMINI_API_KEY", "").strip())

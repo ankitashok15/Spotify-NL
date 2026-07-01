@@ -1,8 +1,8 @@
 import streamlit as st
 
-from streamlit_lib.bootstrap import apply_secrets
+from streamlit_lib.bootstrap import gemini_key_configured, init_runtime
 
-apply_secrets()
+init_runtime()
 
 st.set_page_config(
     page_title="Spotify NL",
@@ -18,13 +18,18 @@ st.markdown(
 
     Use the sidebar pages for dashboard, semantic search, RAG Q&A, agent analysis,
     themes, and insights.
-
-    **Deploy pairing:** This Streamlit app is the Python backend on Streamlit Cloud.
-    The React UI is hosted separately on Vercel and calls the REST API (see `DEPLOY.md`).
     """
 )
 
+if gemini_key_configured():
+    st.success("GEMINI_API_KEY is configured.")
+else:
+    st.error(
+        "GEMINI_API_KEY is missing. In Streamlit Cloud → App settings → Secrets, add:\n\n"
+        "`GEMINI_API_KEY = \"your-key-from-aistudio.google.com\"`"
+    )
+
 st.info(
-    "Configure secrets in Streamlit Cloud (DATABASE_URL, GEMINI_API_KEY, QDRANT_URL) "
-    "before running pipelines."
+    "The React UI on Vercel uses a separate REST API (Render). "
+    "Set `VITE_API_URL` on Vercel to your API host — not this Streamlit URL."
 )

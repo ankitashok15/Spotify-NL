@@ -5,6 +5,8 @@ import logging
 import re
 from typing import Any
 
+import os
+
 import google.generativeai as genai
 
 from phase02.shared.config import settings
@@ -21,9 +23,11 @@ class GeminiProvider(LLMProvider):
         api_key: str | None = None,
         model_name: str | None = None,
     ) -> None:
-        key = api_key or settings.gemini_api_key
+        key = api_key or os.environ.get("GEMINI_API_KEY") or settings.gemini_api_key
         if not key:
-            raise ValueError("GEMINI_API_KEY is not set in .env")
+            raise ValueError(
+                "GEMINI_API_KEY is not set. Add it to .env locally or Streamlit Cloud secrets."
+            )
         self._model_name = model_name or settings.gemini_model
         genai.configure(api_key=key)
         self._text_model = genai.GenerativeModel(self._model_name)

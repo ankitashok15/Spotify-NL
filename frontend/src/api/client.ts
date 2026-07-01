@@ -1,6 +1,20 @@
-const API_BASE = import.meta.env.VITE_API_URL ?? "";
+const API_BASE = (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "");
+
+function ensureApiConfigured(): void {
+  if (import.meta.env.PROD && !API_BASE) {
+    throw new Error(
+      "VITE_API_URL is not set. In Vercel → Project Settings → Environment Variables, add VITE_API_URL=https://your-render-api.onrender.com (no trailing slash), then redeploy. Do not use the Streamlit URL here."
+    );
+  }
+}
 
 function parseApiError(status: number, body: string): string {
+  if (status === 405) {
+    return (
+      "HTTP 405 — API calls are hitting the Vercel static site, not your backend. " +
+      "Set VITE_API_URL to your Render/FastAPI URL (e.g. https://spotify-nl-api.onrender.com) in Vercel environment variables and redeploy."
+    );
+  }
   try {
     const parsed = JSON.parse(body) as { detail?: string | { msg?: string }[] };
     if (typeof parsed.detail === "string") return parsed.detail;
@@ -11,12 +25,13 @@ function parseApiError(status: number, body: string): string {
     /* not JSON */
   }
   if (body.includes("<!doctype") || body.includes("<html")) {
-    return `API unreachable (${status}). Start the backend: python scripts/serve_api.py — or set VITE_API_URL for production.`;
+    return `API unreachable (${status}). Set VITE_API_URL to your Render API URL, or run python scripts/serve_api.py locally.`;
   }
   return body || `Request failed (${status})`;
 }
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  ensureApiConfigured();
   let res: Response;
   try {
     res = await fetch(`${API_BASE}${path}`, {
@@ -25,7 +40,9 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     });
   } catch {
     throw new Error(
-      "Cannot reach API. Run python scripts/serve_api.py (port 8080) or configure VITE_API_URL."
+      API_BASE
+        ? `Cannot reach API at ${API_BASE}. Check that Render is running and CORS allows your Vercel domain.`
+        : "Cannot reach API. Run python scripts/serve_api.py (port 8080) or set VITE_API_URL on Vercel."
     );
   }
   if (!res.ok) {

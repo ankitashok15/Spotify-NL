@@ -1,8 +1,8 @@
 import streamlit as st
 
-from streamlit_lib.bootstrap import apply_secrets
+from streamlit_lib.bootstrap import init_runtime
 
-apply_secrets()
+init_runtime()
 
 st.set_page_config(page_title="Agent", page_icon="🤖", layout="wide")
 st.title("Agent — Multi-step analysis")

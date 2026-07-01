@@ -159,10 +159,45 @@ def apply_secrets() -> None:
                 break
 
 
+_schema_initialized = False
+
+
+def ensure_database_schema() -> bool:
+    """Create missing tables on the configured cloud database (once per process)."""
+    global _schema_initialized
+    if _schema_initialized:
+        return True
+
+    db_url = _config_value("DATABASE_URL")
+    if _is_local_url(db_url):
+        _schema_initialized = True
+        return True
+
+    try:
+        from sqlalchemy import create_engine, inspect
+
+        engine = create_engine(db_url, pool_pre_ping=True)
+        if inspect(engine).has_table("reviews"):
+            _schema_initialized = True
+            return True
+    except Exception:
+        pass
+
+    try:
+        from phase06.database.models import init_phase6_tables
+
+        init_phase6_tables(db_url)
+        _schema_initialized = True
+        return True
+    except Exception:
+        return False
+
+
 def init_runtime() -> None:
     """Call once at the top of every Streamlit page before phase imports."""
     apply_secrets()
     reload_phase_settings()
+    ensure_database_schema()
 
 
 def reload_phase_settings() -> None:

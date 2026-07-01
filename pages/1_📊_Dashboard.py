@@ -170,12 +170,23 @@ try:
 
         st.info("Run Phase 2 extraction to populate structured issues.")
 
-
+    if reviews_total == 0:
+        st.warning(
+            "No reviews in the database yet. From your PC run: "
+            "`python scripts/init_db.py` → `python scripts/scrape.py scrape --limit 50` → "
+            "`python scripts/extract.py extract --limit 20` → "
+            "`python scripts/index_vectors.py embed --limit 20`"
+        )
 
 except Exception as exc:
-
     st.error(f"Could not load dashboard: {exc}")
-
-    st.caption("Check DATABASE_URL in Streamlit secrets.")
+    if "UndefinedTable" in str(exc) or 'relation "reviews" does not exist' in str(exc):
+        st.info(
+            "Tables are missing in the database Streamlit is using. "
+            "Run `python scripts/init_db.py` from your PC, then ensure Streamlit "
+            "**Secrets → DATABASE_URL** matches your `.env` Neon URL exactly."
+        )
+    else:
+        st.caption("Check DATABASE_URL in Streamlit secrets.")
 
 

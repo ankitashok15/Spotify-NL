@@ -62,8 +62,15 @@ if st.button("Ask", type="primary"):
         st.caption(f"Intent: `{result.intent}` · Search query: `{result.search_query}` · {result.took_ms:.0f} ms")
 
     except Exception as exc:
-        st.error(str(exc))
-        if "GEMINI_API_KEY" in str(exc):
-            st.caption("Add GEMINI_API_KEY to Streamlit secrets and reboot the app.")
-        if "QDRANT" in str(exc).upper() or "qdrant" in str(exc):
-            st.caption("Check QDRANT_URL and QDRANT_API_KEY in Streamlit secrets.")
+        err = str(exc)
+        st.error(err)
+        if "UndefinedTable" in err or 'relation "reviews" does not exist' in err:
+            st.info(
+                "Database tables are missing. Run from your PC:\n\n"
+                "`python scripts/init_db.py`\n\n"
+                "Then load data:\n\n"
+                "`python scripts/scrape.py scrape --limit 50`\n"
+                "`python scripts/extract.py extract --limit 20`\n"
+                "`python scripts/index_vectors.py embed --limit 20`\n\n"
+                "Also verify Streamlit **Secrets → DATABASE_URL** matches your `.env` Neon URL exactly."
+            )

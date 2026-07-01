@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import sys
 from pathlib import Path
+from urllib.parse import quote_plus
 
 ROOT = Path(__file__).resolve().parent
 if str(ROOT) not in sys.path:
@@ -28,10 +29,22 @@ _backend = str(ROOT / "backend")
 if _backend not in sys.path:
     sys.path.insert(0, _backend)
 
-_ALIASES = {
-    "GEMINI_API_KEY": ("GEMINI_API_KEY", "GOOGLE_API_KEY"),
-    "DATABASE_URL": ("DATABASE_URL", "POSTGRES_URL"),
+_CANONICAL_ALIASES: dict[str, tuple[str, ...]] = {
+    "GEMINI_API_KEY": ("GEMINI_API_KEY", "GOOGLE_API_KEY", "GEMINI_APIKEY"),
+    "DATABASE_URL": (
+        "DATABASE_URL",
+        "POSTGRES_URL",
+        "NEON_DATABASE_URL",
+        "DB_URL",
+        "POSTGRESQL_URL",
+    ),
     "QDRANT_URL": ("QDRANT_URL",),
+    "QDRANT_API_KEY": ("QDRANT_API_KEY",),
+    "QDRANT_COLLECTION": ("QDRANT_COLLECTION",),
+    "GEMINI_MODEL": ("GEMINI_MODEL",),
+    "GEMINI_MODEL_RAG": ("GEMINI_MODEL_RAG",),
+    "GEMINI_EMBEDDING_MODEL": ("GEMINI_EMBEDDING_MODEL",),
+    "SPOTIFY_APP_ID": ("SPOTIFY_APP_ID",),
 }
 
 
@@ -45,9 +58,82 @@ def _flatten_secrets(obj: object, prefix: str = "") -> dict[str, str]:
                 out.update(_flatten_secrets(value, f"{full}_"))
                 if full == "GEMINI" and "API_KEY" in value:
                     out["GEMINI_API_KEY"] = str(value["API_KEY"])
+                db_url = _postgres_url_from_section(value)
+                if db_url:
+                    out.setdefault("DATABASE_URL", db_url)
             else:
                 out[full] = str(value)
     return out
+
+
+def _postgres_url_from_section(section: dict) -> str:
+    for key in ("url", "URL", "database_url", "DATABASE_URL"):
+        raw = section.get(key)
+        if raw and str(raw).strip():
+            return str(raw).strip()
+
+    host = section.get("host") or section.get("HOST")
+    if not host:
+        return ""
+
+    user = str(section.get("username") or section.get("user") or section.get("USERNAME") or "")
+    password = str(section.get("password") or section.get("PASSWORD") or "")
+    port = section.get("port") or section.get("PORT") or 5432
+    database = str(
+        section.get("database")
+        or section.get("dbname")
+        or section.get("DATABASE")
+        or section.get("DBNAME")
+        or "postgres"
+    )
+    auth = ""
+    if user:
+        auth = quote_plus(user)
+        if password:
+            auth += f":{quote_plus(password)}"
+        auth += "@"
+    return f"postgresql://{auth}{host}:{port}/{database}"
+
+
+def _streamlit_secrets_dict() -> dict:
+    try:
+        import streamlit as st
+
+        return dict(st.secrets)
+    except Exception:
+        return {}
+
+
+def _collect_secret_values() -> dict[str, str]:
+    """Merge top-level secrets, nested sections, and flattened keys."""
+    raw = _streamlit_secrets_dict()
+    collected: dict[str, str] = {}
+
+    # Top-level keys (Streamlit Secrets panel uses these directly)
+    for key, value in raw.items():
+        if isinstance(value, (str, int, float, bool)):
+            collected[str(key).upper()] = str(value)
+
+    collected.update(_flatten_secrets(raw))
+
+    # Suffix / alias match: e.g. CONNECTIONS_POSTGRESQL_DATABASE_URL -> DATABASE_URL
+    for canonical, aliases in _CANONICAL_ALIASES.items():
+        if collected.get(canonical, "").strip():
+            continue
+        for alias in aliases:
+            if collected.get(alias, "").strip():
+                collected[canonical] = collected[alias].strip()
+                break
+        if collected.get(canonical, "").strip():
+            continue
+        for key, value in collected.items():
+            if not value.strip():
+                continue
+            if key == canonical or key.endswith(f"_{canonical}") or key in aliases:
+                collected[canonical] = value.strip()
+                break
+
+    return collected
 
 
 def apply_secrets() -> None:
@@ -59,22 +145,18 @@ def apply_secrets() -> None:
     except ImportError:
         pass
 
-    try:
-        import streamlit as st
+    for key, value in _collect_secret_values().items():
+        if value and value.strip():
+            os.environ[key] = value.strip()
 
-        flat = _flatten_secrets(dict(st.secrets))
-        for key, value in flat.items():
-            if value:
-                os.environ[key] = value
-        for target, sources in _ALIASES.items():
-            if os.environ.get(target):
-                continue
-            for src in sources:
-                if os.environ.get(src):
-                    os.environ[target] = os.environ[src]
-                    break
-    except Exception:
-        pass
+    for target, sources in _CANONICAL_ALIASES.items():
+        if os.environ.get(target, "").strip():
+            continue
+        for src in sources:
+            val = os.environ.get(src, "").strip()
+            if val:
+                os.environ[target] = val
+                break
 
 
 def init_runtime() -> None:
@@ -82,8 +164,13 @@ def init_runtime() -> None:
     apply_secrets()
 
 
+def _config_value(key: str) -> str:
+    apply_secrets()
+    return os.environ.get(key, "").strip()
+
+
 def gemini_key_configured() -> bool:
-    return bool(os.environ.get("GEMINI_API_KEY", "").strip())
+    return bool(_config_value("GEMINI_API_KEY"))
 
 
 def _is_local_url(value: str) -> bool:
@@ -96,12 +183,12 @@ def _is_local_url(value: str) -> bool:
 def deploy_config_issues() -> list[str]:
     """Return human-readable config problems for Streamlit Cloud."""
     issues: list[str] = []
-    if _is_local_url(os.environ.get("DATABASE_URL", "")):
+    if _is_local_url(_config_value("DATABASE_URL")):
         issues.append(
             "DATABASE_URL is missing or points to localhost. "
             "Set a **cloud PostgreSQL** URL in Streamlit Cloud → Settings → Secrets."
         )
-    if _is_local_url(os.environ.get("QDRANT_URL", "")):
+    if _is_local_url(_config_value("QDRANT_URL")):
         issues.append(
             "QDRANT_URL is missing or points to localhost. "
             "Set your **Qdrant Cloud** URL (and QDRANT_API_KEY) in Streamlit secrets."
@@ -119,15 +206,36 @@ def render_deploy_config_help() -> None:
 
     for msg in deploy_config_issues():
         st.error(msg)
+
+    raw = _streamlit_secrets_dict()
+    if raw:
+        top_keys = [str(k) for k in raw.keys()]
+        st.caption(f"Secrets sections/keys detected: `{', '.join(top_keys)}`")
+    else:
+        st.warning(
+            "No Streamlit secrets detected. Open **Settings → Secrets**, paste the TOML block, "
+            "click **Save**, then **Reboot app**."
+        )
+
+    st.code(
+        """GEMINI_API_KEY = "your-key"
+DATABASE_URL = "postgresql://user:pass@host.neon.tech/neondb?sslmode=require"
+QDRANT_URL = "https://xxxx.cloud.qdrant.io"
+QDRANT_API_KEY = "your-qdrant-key"
+GEMINI_MODEL = "gemini-2.5-flash"
+GEMINI_MODEL_RAG = "gemini-2.5-flash"
+GEMINI_EMBEDDING_MODEL = "gemini-embedding-001"
+QDRANT_COLLECTION = "spotify_reviews"
+SPOTIFY_APP_ID = "com.spotify.music\"""",
+        language="toml",
+    )
+
     st.markdown(
         """
-        **Why this happens:** Streamlit Cloud runs on remote servers. It cannot connect to
-        `localhost` on your PC. You need hosted PostgreSQL and Qdrant.
-
-        1. Create a free DB at [Neon](https://neon.tech) or [Supabase](https://supabase.com)
-        2. Use your [Qdrant Cloud](https://cloud.qdrant.io) cluster URL + API key
-        3. Paste all values in **Streamlit Cloud → Settings → Secrets** (see `.streamlit/secrets.toml.example`)
-        4. Click **Save** → **Reboot app**
-        5. From your PC, point `.env` at the same cloud URLs and run scrape / extract / index scripts to load data
+        **Checklist**
+        1. Use **TOML** format above (quotes required, `KEY = "value"` — not `.env` `KEY=value`)
+        2. Keys must be at the **top level** (no `[section]` headers unless using nested postgres config)
+        3. Click **Save** → **⋮ Reboot app**
+        4. `.env` on your PC is **not** uploaded to Streamlit — secrets must be pasted here
         """
     )

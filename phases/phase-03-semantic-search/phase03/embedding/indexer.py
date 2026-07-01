@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import os
 import uuid
 
 from qdrant_client import QdrantClient
@@ -21,9 +22,10 @@ class QdrantIndexer:
         collection_name: str | None = None,
     ) -> None:
         self.collection_name = collection_name or settings.qdrant_collection
-        key = api_key if api_key is not None else settings.qdrant_api_key or None
+        key = api_key if api_key is not None else os.environ.get("QDRANT_API_KEY") or settings.qdrant_api_key or None
+        qdrant_url = url or os.environ.get("QDRANT_URL") or settings.qdrant_url
         self.client = QdrantClient(
-            url=url or settings.qdrant_url,
+            url=qdrant_url,
             api_key=key,
             check_compatibility=False,
         )

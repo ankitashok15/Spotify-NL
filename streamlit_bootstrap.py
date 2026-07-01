@@ -162,6 +162,29 @@ def apply_secrets() -> None:
 def init_runtime() -> None:
     """Call once at the top of every Streamlit page before phase imports."""
     apply_secrets()
+    reload_phase_settings()
+
+
+def reload_phase_settings() -> None:
+    """Recreate phase Settings singletons from the current environment."""
+    import importlib
+
+    for module_name in (
+        "phase01.shared.config",
+        "phase02.shared.config",
+        "phase03.shared.config",
+        "phase04.shared.config",
+        "phase05.shared.config",
+        "phase06.shared.config",
+    ):
+        try:
+            if module_name in sys.modules:
+                mod = sys.modules[module_name]
+            else:
+                mod = importlib.import_module(module_name)
+            mod.settings = mod.Settings()
+        except Exception:
+            continue
 
 
 def _config_value(key: str) -> str:
@@ -192,6 +215,10 @@ def deploy_config_issues() -> list[str]:
         issues.append(
             "QDRANT_URL is missing or points to localhost. "
             "Set your **Qdrant Cloud** URL (and QDRANT_API_KEY) in Streamlit secrets."
+        )
+    if not _config_value("QDRANT_API_KEY") and not _is_local_url(_config_value("QDRANT_URL")):
+        issues.append(
+            "QDRANT_API_KEY is missing. Add it in Streamlit Cloud → Settings → Secrets."
         )
     if not gemini_key_configured():
         issues.append(

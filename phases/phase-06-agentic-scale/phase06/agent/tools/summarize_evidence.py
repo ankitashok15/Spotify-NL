@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 
 from sqlalchemy import text
 from sqlalchemy.orm import Session
@@ -44,7 +45,9 @@ class SummarizeEvidenceTool(AgentTool):
                 "confidence": 0.0,
             }
 
-        if self.llm is None or not settings.gemini_api_key:
+        if self.llm is None or not (
+            os.environ.get("GEMINI_API_KEY") or settings.gemini_api_key
+        ):
             return self._fallback_summary(evidence, context)
 
         try:

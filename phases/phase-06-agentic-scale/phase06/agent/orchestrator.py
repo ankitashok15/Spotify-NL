@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import re
 import time
 from typing import Any
@@ -131,7 +132,7 @@ class AgentOrchestrator:
         trace: list[ToolCallRecord],
     ) -> AgentPlanAction:
         used = {t.tool for t in trace}
-        if self.llm and settings.gemini_api_key:
+        if self.llm and (os.environ.get("GEMINI_API_KEY") or settings.gemini_api_key):
             try:
                 payload = self.llm.generate_json(
                     json.dumps(
